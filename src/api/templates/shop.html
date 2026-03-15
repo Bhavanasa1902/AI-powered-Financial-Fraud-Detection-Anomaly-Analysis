@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopVault — Marketplace</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background: #F5F6FA; color: #111827; }
+
+        header {
+            background: #fff;
+            border-bottom: 1px solid #E5E7EB;
+            padding: 0 40px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+        .logo { font-size: 20px; font-weight: 700; color: #111827; }
+        .logo span { color: #6366F1; }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .header-user { font-size: 14px; color: #6B7280; }
+        .btn-nav {
+            padding: 7px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid #E5E7EB;
+            background: transparent;
+            color: #6B7280;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+        .btn-nav:hover { background: #F3F4F6; color: #111827; border-color: #D1D5DB; }
+        .cart-btn {
+            position: relative;
+            padding: 7px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid #C7D2FE;
+            background: #EEF2FF;
+            color: #4F46E5;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+        .cart-btn:hover { background: #E0E7FF; }
+        .cart-badge {
+            position: absolute; top: -6px; right: -6px;
+            background: #6366F1; color: #fff;
+            font-size: 11px; font-weight: 700;
+            border-radius: 50%; width: 18px; height: 18px;
+            display: none; align-items: center; justify-content: center;
+        }
+
+        .category-bar { display: flex; gap: 8px; padding: 20px 40px 0; overflow-x: auto; }
+        .cat-pill {
+            padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 500;
+            cursor: pointer; border: 1px solid #E5E7EB; background: #fff; color: #6B7280;
+            white-space: nowrap; transition: all 0.2s; font-family: 'Inter', sans-serif;
+        }
+        .cat-pill.active, .cat-pill:hover { background: #EEF2FF; border-color: #C7D2FE; color: #4F46E5; }
+
+        .section-title { padding: 20px 40px 0; font-size: 12px; font-weight: 600; color: #9CA3AF; text-transform: uppercase; letter-spacing: 1px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; padding: 16px 40px 80px; }
+
+        .product-card {
+            background: #fff;
+            border: 1px solid #E5E7EB;
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+        }
+        .product-card:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(0,0,0,0.08); border-color: #C7D2FE; }
+        .p-img { width: 100%; height: 180px; background-size: cover; background-position: center; }
+        .p-body { padding: 18px; }
+        .p-cat { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: #6366F1; font-weight: 600; margin-bottom: 6px; }
+        .p-name { font-size: 16px; font-weight: 600; margin-bottom: 4px; color: #111827; }
+        .p-desc { font-size: 12px; color: #9CA3AF; margin-bottom: 16px; line-height: 1.5; }
+        .p-footer { display: flex; align-items: center; justify-content: space-between; }
+        .p-price { font-size: 22px; font-weight: 700; color: #111827; }
+        .add-btn {
+            padding: 8px 18px; border-radius: 8px; font-size: 13px; font-weight: 600;
+            background: #6366F1; border: none; color: #fff; cursor: pointer;
+            font-family: 'Inter', sans-serif; transition: background 0.2s, transform 0.1s;
+        }
+        .add-btn:hover { background: #4F46E5; }
+        .add-btn:active { transform: scale(0.95); }
+
+        /* Checkout overlay */
+        .overlay { display: none; position: fixed; inset: 0; background: rgba(17,24,39,0.4); backdrop-filter: blur(4px); z-index: 500; justify-content: center; align-items: center; }
+        .overlay.active { display: flex; }
+        .modal-box {
+            background: #fff;
+            border: 1px solid #E5E7EB;
+            border-radius: 20px;
+            width: 90%; max-width: 520px;
+            overflow: hidden;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.15);
+            animation: fadeUp 0.22s ease;
+        }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+
+        .step-bar { display: flex; background: #F9FAFB; border-bottom: 1px solid #E5E7EB; }
+        .step {
+            flex: 1; padding: 14px 0; text-align: center;
+            font-size: 12px; font-weight: 600; color: #9CA3AF;
+            border-bottom: 2px solid transparent; transition: all 0.25s;
+        }
+        .step.active { color: #6366F1; border-color: #6366F1; background: #fff; }
+        .step.done { color: #10B981; border-color: #10B981; background: #fff; }
+
+        .modal-panel { display: none; padding: 28px; }
+        .modal-panel.active { display: block; }
+        .modal-panel h3 { font-size: 18px; font-weight: 700; color: #111827; margin-bottom: 4px; }
+        .modal-panel .sub { font-size: 13px; color: #9CA3AF; margin-bottom: 22px; }
+
+        .cart-item-row { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid #F3F4F6; }
+        .ci-thumb { width: 52px; height: 52px; border-radius: 10px; background-size: cover; background-position: center; flex-shrink: 0; border: 1px solid #E5E7EB; }
+        .ci-name { font-size: 14px; font-weight: 600; color: #111827; }
+        .ci-cat { font-size: 11px; color: #9CA3AF; }
+        .ci-price { font-size: 16px; font-weight: 700; color: #111827; }
+        .cart-total { display: flex; justify-content: space-between; padding-top: 16px; font-size: 16px; font-weight: 700; color: #111827; }
+
+        .field { margin-bottom: 16px; }
+        .field label { display: block; font-size: 12px; font-weight: 500; color: #6B7280; margin-bottom: 6px; }
+        .field input {
+            width: 100%; padding: 11px 14px;
+            background: #F9FAFB; border: 1px solid #E5E7EB;
+            border-radius: 9px; color: #111827; font-size: 14px; font-family: 'Inter', sans-serif;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .field input:focus { outline: none; border-color: #6366F1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+        .form-row { display: flex; gap: 12px; }
+        .form-row .field { flex: 1; }
+
+        .process-steps { display: flex; flex-direction: column; gap: 14px; margin: 20px 0; }
+        .ps-row { display: flex; align-items: center; gap: 14px; font-size: 14px; color: #9CA3AF; }
+        .ps-icon { width: 34px; height: 34px; border-radius: 50%; background: #F3F4F6; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+        .ps-row.done .ps-icon { background: #D1FAE5; }
+        .ps-row.done { color: #374151; }
+        .ps-row.active .ps-icon { background: #EEF2FF; animation: pulse 0.8s infinite; }
+        .ps-row.active { color: #111827; font-weight: 500; }
+        @keyframes pulse { 0%,100% { opacity:0.6 } 50% { opacity:1 } }
+
+        .result-icon { font-size: 56px; margin-bottom: 16px; }
+        .result-title { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+        .result-detail { font-size: 14px; color: #6B7280; margin-bottom: 8px; line-height: 1.6; }
+        .flag-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; justify-content: center; }
+        .chip { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; }
+        .score-row { display: flex; align-items: center; gap: 14px; margin-top: 18px; background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 12px; padding: 14px; }
+        .score-circle { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; border: 3px solid; flex-shrink: 0; }
+        .score-info { font-size: 13px; color: #6B7280; }
+        .score-info b { color: #111827; font-size: 15px; display: block; margin-bottom: 2px; }
+
+        .btn-primary { width: 100%; padding: 14px; background: #6366F1; border: none; border-radius: 10px; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: background 0.2s; margin-top: 8px; }
+        .btn-primary:hover { background: #4F46E5; }
+        .btn-secondary { width: 100%; padding: 12px; background: transparent; border: 1px solid #E5E7EB; border-radius: 10px; color: #6B7280; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Inter', sans-serif; margin-top: 8px; transition: all 0.2s; }
+        .btn-secondary:hover { border-color: #D1D5DB; color: #374151; background: #F9FAFB; }
+        .security-row { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 14px; font-size: 12px; color: #9CA3AF; }
+
+        /* Location widget */
+        .location-widget { position: fixed; bottom: 24px; right: 24px; background: #fff; border: 1px solid #E5E7EB; border-radius: 14px; padding: 14px 18px; font-size: 13px; z-index: 200; min-width: 210px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+        .lw-title { font-weight: 600; color: #111827; margin-bottom: 4px; }
+        .lw-status { font-size: 12px; color: #9CA3AF; margin-bottom: 12px; }
+        .lw-toggle { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #E5E7EB; background: #F9FAFB; color: #6B7280; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s; }
+        .lw-toggle:hover { background: #FEF2F2; border-color: #FECACA; color: #DC2626; }
+        .lw-toggle.active-fraud { background: #FEF2F2; border-color: #FECACA; color: #DC2626; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">Shop<span>Vault</span></div>
+        <div class="header-right">
+            <span class="header-user" id="welcome-msg">—</span>
+            <button class="btn-nav" onclick="window.location.href='/admin'">Bank Dashboard</button>
+            <button class="cart-btn" onclick="openCart()">
+                🛒 Cart
+                <div class="cart-badge" id="cart-badge">0</div>
+            </button>
+            <button class="btn-nav" onclick="logout()">Logout</button>
+        </div>
+    </header>
+
+    <div class="category-bar">
+        <button class="cat-pill active" onclick="filterCat('all', this)">All Items</button>
+        <button class="cat-pill" onclick="filterCat('high_risk_electronics', this)">Electronics</button>
+        <button class="cat-pill" onclick="filterCat('retail', this)">Retail</button>
+        <button class="cat-pill" onclick="filterCat('travel', this)">Travel</button>
+        <button class="cat-pill" onclick="filterCat('food', this)">Groceries</button>
+        <button class="cat-pill" onclick="filterCat('online_services', this)">Subscriptions</button>
+    </div>
+
+    <div class="section-title">Featured Products</div>
+    <div class="grid" id="product-grid"></div>
+
+    <!-- Checkout overlay -->
+    <div class="overlay" id="checkout-overlay">
+        <div class="modal-box">
+            <div class="step-bar">
+                <div class="step active" id="step1-indicator">1 · Cart</div>
+                <div class="step" id="step2-indicator">2 · Payment</div>
+                <div class="step" id="step3-indicator">3 · Processing</div>
+                <div class="step" id="step4-indicator">4 · Result</div>
+            </div>
+
+            <!-- Step 1 -->
+            <div class="modal-panel active" id="panel-cart">
+                <h3>Your Order</h3>
+                <p class="sub">Review before proceeding to payment</p>
+                <div id="cart-items-list"></div>
+                <div class="cart-total"><span>Order Total</span><span id="cart-total-val">$0.00</span></div>
+                <button class="btn-primary" onclick="goToStep(2)">Continue to Payment →</button>
+                <button class="btn-secondary" onclick="closeCheckout()">Continue Shopping</button>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="modal-panel" id="panel-payment">
+                <h3>Payment Details</h3>
+                <p class="sub">Your card info is encrypted and never stored</p>
+                <div class="field"><label>Cardholder Name</label><input type="text" id="card-name" value="Alex Johnson"></div>
+                <div class="field"><label>Card Number</label><input type="text" maxlength="19" id="card-num" value="4532 1234 5678 9012"></div>
+                <div class="form-row">
+                    <div class="field"><label>Expiry</label><input type="text" maxlength="5" value="09/27"></div>
+                    <div class="field"><label>CVV</label><input type="password" maxlength="3" value="473"></div>
+                </div>
+                <div class="field"><label>Billing Address</label><input type="text" value="381 Park Ave, New York, NY"></div>
+                <button class="btn-primary" id="process-btn" onclick="processPayment()">🔒 Pay <span id="pay-amount"></span></button>
+                <button class="btn-secondary" onclick="goToStep(1)">← Back to Cart</button>
+                <div class="security-row"><span>🔒 SSL Encrypted</span>·<span>🛡️ AI Fraud Protected</span>·<span>PCI DSS Compliant</span></div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="modal-panel" id="panel-processing">
+                <h3>Processing Payment</h3>
+                <p class="sub">Please wait — do not close this window</p>
+                <div class="process-steps">
+                    <div class="ps-row" id="ps1"><div class="ps-icon">📡</div><span>Connecting to payment gateway...</span></div>
+                    <div class="ps-row" id="ps2"><div class="ps-icon">🔍</div><span>Running AI fraud analysis...</span></div>
+                    <div class="ps-row" id="ps3"><div class="ps-icon">🏦</div><span>Requesting bank authorization...</span></div>
+                    <div class="ps-row" id="ps4"><div class="ps-icon">✅</div><span>Finalizing transaction...</span></div>
+                </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="modal-panel" id="panel-result">
+                <div style="text-align:center;">
+                    <div class="result-icon" id="result-icon">✅</div>
+                    <div class="result-title" id="result-title">Payment Approved</div>
+                    <p class="result-detail" id="result-detail"></p>
+                    <div class="flag-chips" id="flag-chips"></div>
+                    <div class="score-row" id="score-row">
+                        <div class="score-circle" id="score-circle">—</div>
+                        <div class="score-info"><b id="score-label">—</b>AI Risk Decision</div>
+                    </div>
+                    <button class="btn-secondary" onclick="closeCheckout()" style="margin-top:20px;">Back to Shop</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Location widget -->
+    <div class="location-widget">
+        <div class="lw-title" id="lw-label">📍 New York, USA</div>
+        <div class="lw-status" id="lw-sub">Normal purchase location</div>
+        <button class="lw-toggle" id="lw-btn" onclick="toggleLocation()">Simulate Overseas Purchase</button>
+    </div>
+
+    <script>
+        let cart = [], allProducts = [], isAnomalous = false, lat = 40.7128, lon = -74.0060;
+
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user) window.location.href = '/';
+        document.getElementById('welcome-msg').textContent = user.name;
+
+        function logout() { localStorage.removeItem('user'); window.location.href = '/'; }
+
+        function toggleLocation() {
+            isAnomalous = !isAnomalous;
+            const btn = document.getElementById('lw-btn');
+            if (isAnomalous) {
+                lat = 51.5072; lon = -0.1276;
+                document.getElementById('lw-label').textContent = '⚠️ London, UK';
+                document.getElementById('lw-sub').textContent = 'Anomalous location detected';
+                btn.textContent = 'Restore NY Location'; btn.classList.add('active-fraud');
+            } else {
+                lat = 40.7128; lon = -74.0060;
+                document.getElementById('lw-label').textContent = '📍 New York, USA';
+                document.getElementById('lw-sub').textContent = 'Normal purchase location';
+                btn.textContent = 'Simulate Overseas Purchase'; btn.classList.remove('active-fraud');
+            }
+        }
+
+        function filterCat(cat, el) {
+            document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+            el.classList.add('active');
+            document.querySelectorAll('.product-card').forEach(c => { c.style.display = (cat==='all' || c.dataset.cat===cat) ? '' : 'none'; });
+        }
+
+        async function loadProducts() {
+            const res = await fetch('/api/products');
+            const data = await res.json();
+            allProducts = data.products;
+            const grid = document.getElementById('product-grid');
+            const descs = { p1:'Latest flagship device with 200MP camera and all-day battery.', p2:'Swiss-crafted precision with sapphire crystal glass face.', p3:'Premium sound in a lightweight, wireless form factor.', p4:'Fresh produce, dairy, and pantry staples delivered fast.', p5:'Unlimited streaming, cloud storage, and music.', p6:'One-way fare to your next adventure, available now.' };
+            data.products.forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'product-card'; card.dataset.cat = p.category;
+                card.innerHTML = `
+                    <div class="p-img" style="background-image:url('${p.image}')"></div>
+                    <div class="p-body">
+                        <div class="p-cat">${p.category.replace(/_/g,' ')}</div>
+                        <div class="p-name">${p.name}</div>
+                        <div class="p-desc">${descs[p.id]||''}</div>
+                        <div class="p-footer">
+                            <div class="p-price">$${p.price.toFixed(2)}</div>
+                            <button class="add-btn" onclick="addToCart('${p.id}', event)">Add to Cart</button>
+                        </div>
+                    </div>`;
+                grid.appendChild(card);
+            });
+        }
+
+        function addToCart(pid, e) {
+            e.stopPropagation();
+            const p = allProducts.find(x => x.id===pid);
+            const ex = cart.find(x => x.id===pid);
+            if (ex) ex.qty++; else cart.push({...p, qty:1});
+            updateCartBadge();
+            const btn = e.target; btn.textContent = '✓ Added!'; btn.style.background = '#10B981';
+            setTimeout(() => { btn.textContent = 'Add to Cart'; btn.style.background = ''; }, 1000);
+        }
+
+        function updateCartBadge() {
+            const total = cart.reduce((s,x) => s+x.qty, 0);
+            const b = document.getElementById('cart-badge');
+            b.textContent = total; b.style.display = total>0 ? 'flex' : 'none';
+        }
+
+        function openCart() {
+            if (!cart.length) { alert('Your cart is empty! Add some items first.'); return; }
+            renderCart(); document.getElementById('checkout-overlay').classList.add('active'); goToStep(1);
+        }
+
+        function renderCart() {
+            const list = document.getElementById('cart-items-list');
+            list.innerHTML = '';
+            let total = 0;
+            cart.forEach(item => {
+                total += item.price * item.qty;
+                list.innerHTML += `<div class="cart-item-row"><div class="ci-thumb" style="background-image:url('${item.image}')"></div><div style="flex:1"><div class="ci-name">${item.name}</div><div class="ci-cat">Qty: ${item.qty}</div></div><div class="ci-price">$${(item.price*item.qty).toFixed(2)}</div></div>`;
+            });
+            document.getElementById('cart-total-val').textContent = '$'+total.toFixed(2);
+            document.getElementById('pay-amount').textContent = '$'+total.toFixed(2);
+        }
+
+        function closeCheckout() { document.getElementById('checkout-overlay').classList.remove('active'); }
+
+        function goToStep(n) {
+            const panels = ['','panel-cart','panel-payment','panel-processing','panel-result'];
+            for (let i=1; i<=4; i++) {
+                document.getElementById(`step${i}-indicator`).className = 'step' + (i<n?' done':i===n?' active':'');
+                document.getElementById(panels[i]).className = 'modal-panel' + (i===n?' active':'');
+            }
+        }
+
+        async function processPayment() {
+            const btn = document.getElementById('process-btn');
+            btn.disabled = true;
+            goToStep(3);
+            const total = cart.reduce((s,x) => s+x.price*x.qty, 0);
+            const topCat = [...cart].sort((a,b) => b.price-a.price)[0].category;
+            const steps = ['ps1','ps2','ps3','ps4'];
+            for (let i=0; i<steps.length; i++) {
+                document.getElementById(steps[i]).className = 'ps-row active';
+                await new Promise(r => setTimeout(r, 700));
+            }
+            let apiData = null;
+            try {
+                const res = await fetch('/predict', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ amount:total, merchant_category:topCat, location_lat:lat, location_lon:lon, user_id:user.id }) });
+                apiData = await res.json();
+            } catch {}
+            steps.forEach(s => { document.getElementById(s).className = 'ps-row done'; });
+            await new Promise(r => setTimeout(r, 500));
+            showResult(apiData, total);
+            goToStep(4);
+            btn.disabled = false;
+        }
+
+        function showResult(data, total) {
+            const score = data?.risk_score ?? 0;
+            const decision = data?.decision ?? 'ALLOW';
+            const isBlocked = decision === 'BLOCK';
+            const isFlagged = decision === 'FLAG_FOR_REVIEW' || decision === 'STEP_UP_AUTH';
+            document.getElementById('score-circle').textContent = score;
+            document.getElementById('score-label').textContent = decision.replace(/_/g,' ');
+            const chips = document.getElementById('flag-chips');
+            if (isBlocked) {
+                document.getElementById('result-icon').textContent = '🚫';
+                document.getElementById('result-title').textContent = 'Transaction Declined';
+                document.getElementById('result-title').style.color = '#DC2626';
+                document.getElementById('result-detail').innerHTML = 'Our AI flagged this as <strong>high risk</strong> and blocked it to protect your account. No funds were charged.';
+                document.getElementById('score-circle').style.cssText = 'border-color:#EF4444;color:#DC2626;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;border:3px solid;flex-shrink:0;';
+                chips.style.display = 'flex';
+                chips.innerHTML = (data?.primary_reasons||['Fraud Detected']).map(r=>`<div class="chip">⚠ ${r}</div>`).join('');
+            } else if (isFlagged) {
+                document.getElementById('result-icon').textContent = '🔔';
+                document.getElementById('result-title').textContent = 'Verification Required';
+                document.getElementById('result-title').style.color = '#D97706';
+                document.getElementById('result-detail').innerHTML = 'Unusual activity detected. A one-time code has been sent to your registered phone number.';
+                document.getElementById('score-circle').style.cssText = 'border-color:#F59E0B;color:#D97706;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;border:3px solid;flex-shrink:0;';
+                chips.style.display = (data?.primary_reasons||[]).length ? 'flex' : 'none';
+                chips.innerHTML = (data?.primary_reasons||[]).map(r=>`<div class="chip" style="background:#FFFBEB;color:#B45309;border-color:#FDE68A;">🔔 ${r}</div>`).join('');
+            } else {
+                document.getElementById('result-icon').textContent = '✅';
+                document.getElementById('result-title').textContent = 'Payment Approved!';
+                document.getElementById('result-title').style.color = '#059669';
+                document.getElementById('result-detail').innerHTML = `Order confirmed for <strong>$${total.toFixed(2)}</strong>. Estimated delivery: 2–3 business days.`;
+                document.getElementById('score-circle').style.cssText = 'border-color:#10B981;color:#059669;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;border:3px solid;flex-shrink:0;';
+                chips.style.display = 'none';
+                cart = []; updateCartBadge();
+            }
+        }
+        loadProducts();
+    </script>
+</body>
+</html>

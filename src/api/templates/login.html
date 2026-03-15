@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopVault — Secure Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f6fa;
+            color: #1a1d2e;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        .brand-panel {
+            flex: 1;
+            background: linear-gradient(135deg, #6366F1 0%, #4338CA 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 60px;
+            position: relative;
+            overflow: hidden;
+            color: #fff;
+        }
+        .brand-panel::after {
+            content: '';
+            position: absolute;
+            width: 400px; height: 400px;
+            background: rgba(255,255,255,0.07);
+            border-radius: 50%;
+            bottom: -120px; right: -100px;
+        }
+        .brand-logo { font-size: 28px; font-weight: 700; margin-bottom: 60px; }
+        .brand-logo span { opacity: 0.75; }
+        .brand-tagline { font-size: 44px; font-weight: 700; line-height: 1.15; margin-bottom: 24px; }
+        .brand-sub { font-size: 16px; opacity: 0.75; line-height: 1.7; max-width: 400px; }
+        .trust-badges { display: flex; gap: 24px; margin-top: 48px; }
+        .badge { display: flex; align-items: center; gap: 10px; font-size: 13px; opacity: 0.8; }
+        .badge-icon { font-size: 22px; }
+
+        .login-form-panel {
+            width: 480px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px 48px;
+            background: #fff;
+        }
+        .form-box { width: 100%; }
+        .form-title { font-size: 28px; font-weight: 700; margin-bottom: 8px; color: #111827; }
+        .form-subtitle { color: #6B7280; font-size: 14px; margin-bottom: 40px; }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 8px; }
+        .input-group input {
+            width: 100%;
+            padding: 13px 16px;
+            background: #F9FAFB;
+            border: 1px solid #E5E7EB;
+            border-radius: 10px;
+            color: #111827;
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .input-group input:focus { outline: none; border-color: #6366F1; box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            margin-top: 8px;
+            background: #6366F1;
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .btn-login:hover { background: #4F52D9; }
+        .btn-login:active { transform: scale(0.98); }
+        .hint {
+            margin-top: 24px;
+            background: #F0F1FF;
+            border: 1px solid #C7D2FE;
+            border-radius: 10px;
+            padding: 14px 16px;
+            font-size: 13px;
+            color: #4B5563;
+            line-height: 1.8;
+        }
+        .hint b { color: #374151; }
+        .error-msg { color: #DC2626; font-size: 13px; margin-top: 10px; display: none; }
+    </style>
+</head>
+<body>
+    <div class="brand-panel">
+        <div class="brand-logo">Shop<span>Vault</span></div>
+        <div class="brand-tagline">Shop with<br>confidence.</div>
+        <p class="brand-sub">Every transaction on ShopVault is protected by our real-time AI fraud prevention engine, analyzing risk in milliseconds before your money moves.</p>
+        <div class="trust-badges">
+            <div class="badge"><span class="badge-icon">🛡️</span> AI-Protected</div>
+            <div class="badge"><span class="badge-icon">⚡</span> Instant Decisions</div>
+            <div class="badge"><span class="badge-icon">🔒</span> Bank-Grade Security</div>
+        </div>
+    </div>
+
+    <div class="login-form-panel">
+        <div class="form-box">
+            <div class="form-title">Welcome back</div>
+            <p class="form-subtitle">Sign in to your ShopVault account</p>
+            <div class="input-group">
+                <label>Account ID</label>
+                <input type="text" id="user_id" placeholder="e.g. U00001" value="U00001">
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="password" value="password123">
+            </div>
+            <button class="btn-login" id="login-btn" onclick="doLogin()">Sign in →</button>
+            <div class="error-msg" id="err-msg">Invalid credentials. Please try again.</div>
+            <div class="hint">
+                <b>Demo accounts:</b><br>
+                User ID: <b>U00001</b> through <b>U00020</b> &nbsp;·&nbsp; Password: <b>password123</b>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function doLogin() {
+            const btn = document.getElementById('login-btn');
+            btn.textContent = 'Signing in…'; btn.disabled = true;
+            document.getElementById('err-msg').style.display = 'none';
+            try {
+                const res = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: document.getElementById('user_id').value.trim(), password: document.getElementById('password').value }) });
+                const data = await res.json();
+                if (data.status === 'success') { localStorage.setItem('user', JSON.stringify(data.user)); window.location.href = '/shop'; }
+                else { document.getElementById('err-msg').style.display = 'block'; btn.textContent = 'Sign in →'; btn.disabled = false; }
+            } catch { document.getElementById('err-msg').textContent = 'Server error. Is the API running?'; document.getElementById('err-msg').style.display = 'block'; btn.textContent = 'Sign in →'; btn.disabled = false; }
+        }
+        document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+    </script>
+</body>
+</html>
