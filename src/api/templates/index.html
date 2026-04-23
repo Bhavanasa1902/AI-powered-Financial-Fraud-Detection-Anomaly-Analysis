@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Fraud Operations Center</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Vibrant Dark Mode Palette */
+            --bg-dark: #0B0E14;
+            --bg-panel: rgba(22, 27, 34, 0.6);
+            --bg-panel-hover: rgba(33, 40, 48, 0.8);
+            --border-glow: rgba(255, 255, 255, 0.08);
+            --text-main: #F3F4F6;
+            --text-muted: #9CA3AF;
+            --text-accent: #818CF8;
+            
+            --primary: #6366F1;
+            --primary-glow: rgba(99, 102, 241, 0.4);
+            
+            --success: #10B981;
+            --success-bg: rgba(16, 185, 129, 0.15);
+            --warning: #F59E0B;
+            --warning-bg: rgba(245, 158, 11, 0.15);
+            --danger: #EF4444;
+            --danger-bg: rgba(239, 68, 68, 0.15);
+            --danger-glow: rgba(239, 68, 68, 0.4);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.15), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(239, 68, 68, 0.1), transparent 25%);
+            background-attachment: fixed;
+            overflow: hidden;
+        }
+
+        /* Glassmorphism Panel Container */
+        .glass-panel {
+            background: var(--bg-panel);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-glow);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Layout */
+        .dashboard {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            padding: 24px;
+            box-sizing: border-box;
+            gap: 24px;
+        }
+
+        .left-pane {
+            flex: 1;
+            max-width: 480px;
+            height: calc(100% - 48px);
+            overflow-y: auto;
+        }
+
+        .right-pane {
+            flex: 2;
+            height: calc(100% - 48px);
+            overflow: hidden; /* Handled by internal list */
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        h2 span.live-dot {
+            width: 10px;
+            height: 10px;
+            background-color: var(--success);
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 10px var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            margin-top: -16px;
+            margin-bottom: 32px;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-main);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            box-sizing: border-box;
+            background-color: rgba(0,0,0,0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 15px var(--primary-glow);
+            background-color: rgba(0,0,0,0.6);
+        }
+        
+        option { background-color: var(--bg-dark); }
+
+        .row { display: flex; gap: 16px; }
+        .row .form-group { flex: 1; margin-bottom: 0;}
+
+        /* Controls */
+        .btn-modern {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--primary) 0%, #818CF8 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            font-family: 'Outfit', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 20px -10px var(--primary-glow);
+            margin-top: 16px;
+        }
+
+        .btn-modern:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px -10px var(--primary-glow);
+        }
+
+        .btn-modern:active { transform: translateY(1px); }
+
+        .scenario-btns {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .s-btn {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.3);
+            color: var(--text-muted);
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .s-btn.fraud:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-bg); box-shadow: 0 0 15px var(--danger-bg);}
+        .s-btn.normal:hover { border-color: var(--success); color: var(--success); background: var(--success-bg); box-shadow: 0 0 15px var(--success-bg);}
+
+        /* Right Pane: Feed Log */
+        .feed-container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .feed-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-glow);
+            padding-bottom: 16px;
+            margin-bottom: 16px;
+        }
+
+        .feed-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding-right: 8px;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+
+        /* Feed Item Card */
+        .feed-item {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-glow);
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .feed-item:hover {
+            background: var(--bg-panel-hover);
+            transform: translateX(4px);
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .fi-left {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .fi-id {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        
+        .fi-amount {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+        
+        .fi-ctx {
+            font-size: 14px;
+            color: var(--text-muted);
+            display: flex;
+            gap: 12px;
+        }
+
+        .fi-right {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            text-align: right;
+        }
+
+        .fi-score-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid #333;
+        }
+
+        .fi-score {
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .fi-decision {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .fi-metadata {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+        }
+
+        .fi-reasons {
+            font-size: 12px;
+            color: var(--danger);
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Status Colors for Feed Items */
+        .status-allow .fi-score-wrap { border-color: var(--success); box-shadow: 0 0 10px var(--success-bg);}
+        .status-allow .fi-score { color: var(--success); }
+        .status-allow .fi-decision { background: var(--success-bg); color: var(--success); border: 1px solid rgba(16,185,129,0.3); }
+
+        .status-step .fi-score-wrap { border-color: var(--warning); box-shadow: 0 0 10px var(--warning-bg);}
+        .status-step .fi-score { color: var(--warning); }
+        .status-step .fi-decision { background: var(--warning-bg); color: var(--warning); border: 1px solid rgba(245,158,11,0.3); }
+
+        .status-block .fi-score-wrap { border-color: var(--danger); box-shadow: 0 0 15px var(--danger-glow);}
+        .status-block .fi-score { color: var(--danger); }
+        .status-block .fi-decision { background: var(--danger-bg); color: var(--danger); border: 1px solid rgba(239,68,68,0.4); box-shadow: 0 0 10px var(--danger-bg); }
+
+    </style>
+</head>
+<body>
+
+    <div class="dashboard">
+        <!-- LEFT: Active Simulator -->
+        <div class="glass-panel left-pane">
+            <h2>Secure Checkout</h2>
+            <p class="subtitle">Live API Request Simulator</p>
+
+            <form id="checkout-form">
+                <div class="form-group">
+                    <label>Amount ($)</label>
+                    <input type="number" id="amount" value="1205.00" step="0.01" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Merchant Category</label>
+                    <select id="category">
+                        <option value="retail">Retail (Clothing, Goods)</option>
+                        <option value="high_risk_electronics" selected>High-Risk Electronics</option>
+                        <option value="travel">Travel & Flights</option>
+                        <option value="food">Food & Dining</option>
+                        <option value="online_services">Digital Services / Crypto</option>
+                    </select>
+                </div>
+
+                <div class="row">
+                    <div class="form-group">
+                        <label>IP Latitude</label>
+                        <input type="number" id="lat" value="48.8566" step="0.0001" required>
+                    </div>
+                    <div class="form-group">
+                        <label>IP Longitude</label>
+                        <input type="number" id="lon" value="2.3522" step="0.0001" required>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 24px;">
+                    <label>Simulate User Sequence</label>
+                    <input type="text" id="user_id" value="U00001">
+                    <small style="color: var(--text-muted); display:block; margin-top:8px; font-size:13px; line-height: 1.4;">
+                        Overrides pipeline anomaly engine with historical baseline for this User ID.
+                    </small>
+                </div>
+
+                <button type="submit" class="btn-modern" id="pay-btn">
+                    Transmit Transaction
+                </button>
+            </form>
+            
+            <div class="scenario-btns">
+                <button type="button" class="s-btn fraud" onclick="setFraudScenario()">Inject Fraud Vector</button>
+                <button type="button" class="s-btn normal" onclick="setNormalScenario()">Load Average Spend</button>
+            </div>
+        </div>
+
+        <!-- RIGHT: Live Operations Feed -->
+        <div class="glass-panel right-pane">
+            <div class="feed-container">
+                <div class="feed-header">
+                    <h2><span class="live-dot"></span> Operations Control</h2>
+                    <div style="font-family: 'JetBrains Mono'; color: var(--text-muted); font-size: 14px;">
+                        Model V1.4 - Live Event Stream
+                    </div>
+                </div>
+                
+                <div class="feed-list" id="feed-list">
+                    <!-- Feed items will stream here -->
+                    <div style="text-align: center; color: var(--text-muted); margin-top: 50px; font-size: 14px;">
+                        Waiting for real-time transactions...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Preset Scenarios
+        function setFraudScenario() {
+            document.getElementById('amount').value = 8500.00;
+            document.getElementById('category').value = 'high_risk_electronics';
+            document.getElementById('lat').value = 51.5072; // London (distant from base)
+            document.getElementById('lon').value = -0.1276;
+            document.getElementById('user_id').value = 'U00002'; // High velocity target
+            
+            // Visual feedback
+            const btn = document.querySelector('.s-btn.fraud');
+            btn.style.transform = 'scale(0.95)';
+            setTimeout(() => btn.style.transform = 'none', 150);
+        }
+
+        function setNormalScenario() {
+            document.getElementById('amount').value = 45.50;
+            document.getElementById('category').value = 'food';
+            document.getElementById('lat').value = 34.0522; // LA (normal base)
+            document.getElementById('lon').value = -118.2437;
+            document.getElementById('user_id').value = 'U00150';
+            
+            const btn = document.querySelector('.s-btn.normal');
+            btn.style.transform = 'scale(0.95)';
+            setTimeout(() => btn.style.transform = 'none', 150);
+        }
+
+        // Post Transaction
+        document.getElementById('checkout-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('pay-btn');
+            btn.innerHTML = 'Analyzing Node...';
+            btn.style.opacity = '0.7';
+            
+            const payload = {
+                amount: document.getElementById('amount').value,
+                merchant_category: document.getElementById('category').value,
+                location_lat: document.getElementById('lat').value,
+                location_lon: document.getElementById('lon').value,
+                user_id: document.getElementById('user_id').value,
+            };
+
+            try {
+                await fetch('/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                // Success pushes to the feed automatically via polling
+            } catch (error) {
+                console.error("API Error:", error);
+                alert("Failed to reach inference server.");
+            } finally {
+                btn.innerHTML = 'Transmit Transaction';
+                btn.style.opacity = '1';
+            }
+        });
+
+        // Feed Polling Logic
+        let lastTransId = null;
+
+        async function pollFeed() {
+            try {
+                const response = await fetch('/feed');
+                const data = await response.json();
+                
+                if(data.status === 'success' && data.feed.length > 0) {
+                    const listObj = document.getElementById('feed-list');
+                    
+                    // Clear "waiting" message if first load
+                    if(listObj.innerText.includes('Waiting for')) {
+                        listObj.innerHTML = '';
+                    }
+
+                    // To prevent massive redraws, only render last transaction if its ID changed
+                    // For a robust system we'd diff the lists, but for prototype we just redraw
+                    const latestTx = data.feed[data.feed.length - 1];
+                    if (latestTx.transaction_id !== lastTransId) {
+                        renderFeed(data.feed);
+                        lastTransId = latestTx.transaction_id;
+                    }
+                }
+            } catch (e) {
+                console.error("Feed poll error:", e);
+            }
+        }
+
+        function renderFeed(feedArray) {
+            const listObj = document.getElementById('feed-list');
+            listObj.innerHTML = '';
+            
+            // Reverse so newest is at the top
+            const reversed = [...feedArray].reverse();
+
+            reversed.forEach(tx => {
+                const isAllow = tx.decision === 'ALLOW';
+                const isBlock = tx.decision.includes('BLOCK') || tx.decision.includes('FLAG');
+                
+                let statusClass = 'status-step';
+                if(isAllow) statusClass = 'status-allow';
+                else if(isBlock) statusClass = 'status-block';
+
+                const reasonString = (tx.primary_reasons && tx.primary_reasons.length > 0) 
+                    ? `⚠️ ${tx.primary_reasons.join(', ')}` 
+                    : '';
+
+                const itemHTML = `
+                    <div class="feed-item ${statusClass}">
+                        <div class="fi-left">
+                            <div class="fi-id">${tx.timestamp} | ${tx.transaction_id}</div>
+                            <div class="fi-amount">$${parseFloat(tx.amount).toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
+                            <div class="fi-ctx">
+                                <span>User: ${tx.user_id}</span>
+                                <span style="color: rgba(255,255,255,0.2);">|</span>
+                                <span style="text-transform: capitalize;">${tx.category.replace('_', ' ')}</span>
+                            </div>
+                        </div>
+                        <div class="fi-right">
+                            <div class="fi-metadata">
+                                <div class="fi-decision">${tx.decision.replace(/_/g, ' ')}</div>
+                                <div class="fi-reasons">${reasonString}</div>
+                            </div>
+                            <div class="fi-score-wrap">
+                                <span class="fi-score">${tx.risk_score}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                listObj.insertAdjacentHTML('beforeend', itemHTML);
+            });
+        }
+
+        // Poll every 1 second
+        setInterval(pollFeed, 1000);
+        pollFeed(); // Initial load
+    </script>
+</body>
+</html>
