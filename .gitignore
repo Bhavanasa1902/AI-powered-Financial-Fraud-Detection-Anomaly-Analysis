@@ -1,0 +1,6 @@
+data/
+*.csv
+.env
+*.pyc
+__pycache__/
+firebase-adminsdk*.json

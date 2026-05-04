@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopVault — Bank Operations Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0F172A;
+            color: #F1F5F9;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image:
+                radial-gradient(circle at 20% 50%, rgba(99,102,241,0.12), transparent 40%),
+                radial-gradient(circle at 80% 20%, rgba(16,185,129,0.08), transparent 35%);
+        }
+
+        .login-container {
+            display: flex;
+            width: 840px;
+            min-height: 520px;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .brand-side {
+            flex: 1;
+            background: linear-gradient(160deg, #1E293B 0%, #0F172A 100%);
+            border-right: 1px solid rgba(255,255,255,0.06);
+            padding: 48px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .brand-logo { font-size: 22px; font-weight: 700; margin-bottom: 48px; }
+        .brand-logo span { color: #6366F1; }
+        .brand-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3);
+            color: #818CF8; font-size: 11px; font-weight: 600;
+            padding: 4px 10px; border-radius: 6px; margin-bottom: 24px;
+            width: fit-content; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .brand-title { font-size: 32px; font-weight: 700; line-height: 1.2; margin-bottom: 16px; }
+        .brand-sub { font-size: 14px; color: #94A3B8; line-height: 1.7; max-width: 300px; }
+
+        .brand-features { margin-top: 40px; display: flex; flex-direction: column; gap: 12px; }
+        .bf-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #94A3B8; }
+        .bf-icon {
+            width: 28px; height: 28px; border-radius: 8px;
+            background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.2);
+            display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0;
+        }
+
+        .form-side {
+            width: 360px;
+            background: #1E293B;
+            padding: 48px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .form-title { font-size: 22px; font-weight: 700; color: #F1F5F9; margin-bottom: 6px; }
+        .form-sub { font-size: 13px; color: #64748B; margin-bottom: 32px; }
+
+        .field { margin-bottom: 20px; }
+        .field label { display: block; font-size: 12px; font-weight: 500; color: #94A3B8; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .field input {
+            width: 100%; padding: 12px 14px;
+            background: #0F172A; border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px; color: #F1F5F9; font-size: 14px; font-family: 'Inter', sans-serif;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .field input:focus { outline: none; border-color: #6366F1; box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+
+        .btn-login {
+            width: 100%; padding: 13px;
+            background: linear-gradient(135deg, #6366F1, #818CF8);
+            border: none; border-radius: 10px; color: #fff;
+            font-size: 15px; font-weight: 600; cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: opacity 0.2s, transform 0.1s;
+            box-shadow: 0 8px 20px -8px rgba(99,102,241,0.5);
+            margin-top: 8px;
+        }
+        .btn-login:hover { opacity: 0.9; }
+        .btn-login:active { transform: scale(0.98); }
+
+        .error-msg {
+            color: #F87171; font-size: 13px; margin-top: 12px;
+            display: none; text-align: center;
+            background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.2);
+            border-radius: 8px; padding: 8px;
+        }
+
+        .hint {
+            margin-top: 24px;
+            background: rgba(99,102,241,0.08);
+            border: 1px solid rgba(99,102,241,0.15);
+            border-radius: 10px; padding: 12px 14px;
+            font-size: 12px; color: #94A3B8; line-height: 1.7;
+        }
+        .hint b { color: #C7D2FE; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="brand-side">
+            <div class="brand-logo">Shop<span>Vault</span></div>
+            <div class="brand-badge">🏦 Bank Portal</div>
+            <div class="brand-title">Operations<br>Center</div>
+            <p class="brand-sub">Secure access to real-time fraud monitoring, AI model management, and transaction analytics.</p>
+
+            <div class="brand-features">
+                <div class="bf-item"><div class="bf-icon">📊</div>Real-time transaction monitoring</div>
+                <div class="bf-item"><div class="bf-icon">🤖</div>AI model retraining controls</div>
+                <div class="bf-item"><div class="bf-icon">🔍</div>Customer risk trend analysis</div>
+                <div class="bf-item"><div class="bf-icon">🛡️</div>Fraud alert management</div>
+            </div>
+        </div>
+
+        <div class="form-side">
+            <div class="form-title">Bank Login</div>
+            <p class="form-sub">Authorized personnel only</p>
+
+            <div class="field">
+                <label>Email</label>
+                <input type="email" id="email" placeholder="admin@shopvault.com" value="admin@shopvault.com">
+            </div>
+            <div class="field">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="Enter password" value="admin123">
+            </div>
+            <button class="btn-login" id="login-btn" onclick="doLogin()">Sign In →</button>
+            <div class="error-msg" id="err-msg">Invalid credentials. Access denied.</div>
+        </div>
+    </div>
+
+    <!-- Firebase Auth SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyA10Q1P7pgU3jBQL5Qn1y3zjUac02KVo4w",
+            authDomain: "ai-financial-fraud-detection.firebaseapp.com",
+            projectId: "ai-financial-fraud-detection",
+            storageBucket: "ai-financial-fraud-detection.firebasestorage.app",
+            messagingSenderId: "651400297625",
+            appId: "1:651400297625:web:1b7a45f9e9e0299ab40c08"
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        // If already logged in, go to dashboard
+        firebase.auth().onAuthStateChanged(user => {
+            if (user) {
+                user.getIdToken().then(token => {
+                    localStorage.setItem('fb_token', token);
+                    window.location.href = '/dashboard';
+                });
+            }
+        });
+
+        async function doLogin() {
+            const btn = document.getElementById('login-btn');
+            btn.textContent = 'Authenticating…'; btn.disabled = true;
+            document.getElementById('err-msg').style.display = 'none';
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+
+            try {
+                const cred = await firebase.auth().signInWithEmailAndPassword(email, password);
+                const token = await cred.user.getIdToken();
+                localStorage.setItem('fb_token', token);
+                window.location.href = '/dashboard';
+            } catch (err) {
+                document.getElementById('err-msg').textContent = err.message || 'Invalid credentials.';
+                document.getElementById('err-msg').style.display = 'block';
+                btn.textContent = 'Sign In →'; btn.disabled = false;
+            }
+        }
+        document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+    </script>
+</body>
+</html>

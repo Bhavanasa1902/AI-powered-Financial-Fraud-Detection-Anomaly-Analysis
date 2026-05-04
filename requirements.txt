@@ -11,3 +11,7 @@ imbalanced-learn
 faker
 jupyter
 flask
+flask-cors
+neo4j
+python-dotenv
+Flask-Limiter

@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  ecommerce-app:
+    build: .
+    container_name: shopvault-ecommerce
+    ports:
+      - "5001:5001"
+    env_file:
+      - .env
+    command: python src/api/app.py
+    # Mount the models directory so that retraining persists across container restarts
+    volumes:
+      - ./saved_models:/app/saved_models
+
+  bank-dashboard:
+    build: .
+    container_name: shopvault-bank
+    ports:
+      - "5002:5002"
+    env_file:
+      - .env
+    command: python src/api/bank_app.py
+    # Mount the models directory so that it shares the same models with ecommerce-app
+    volumes:
+      - ./saved_models:/app/saved_models

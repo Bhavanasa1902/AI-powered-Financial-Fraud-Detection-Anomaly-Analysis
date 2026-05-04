@@ -36,3 +36,11 @@ random_forest Model saved to saved_models/supervised_rf.pkl
 Isolation Forest Model saved to saved_models/isolation_forest.pkl
 Autoencoder saved to saved_models/autoencoder.pt
 \nPipeline execution and export complete! Ready for real-time inference.
+
+[2026-04-23 03:35:37 UTC] trigger=manual result=ERROR new_rows=60 | Retrain failed: Traceback (most recent call last):
+  File "C:\Users\bhava\Documents\GitHub\AI-powered Financial Fraud-Detection-Anomaly-Analysis\src\api\bank_app.py", line 287, in _do_retrain_core
+    combined.fillna
+
+[2026-04-23 08:36:17 UTC] trigger=manual result=ERROR new_rows=74 | Retrain failed: Traceback (most recent call last):
+  File "C:\Users\bhava\Documents\GitHub\AI-powered Financial Fraud-Detection-Anomaly-Analysis\src\api\bank_app.py", line 287, in _do_retrain_core
+    combined.fillna

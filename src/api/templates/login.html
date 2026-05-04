@@ -1,18 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ShopVault — Secure Login</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             background: #f5f6fa;
             color: #1a1d2e;
             min-height: 100vh;
             display: flex;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .brand-panel {
@@ -26,21 +55,59 @@
             overflow: hidden;
             color: #fff;
         }
+
         .brand-panel::after {
             content: '';
             position: absolute;
-            width: 400px; height: 400px;
-            background: rgba(255,255,255,0.07);
+            width: 400px;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.07);
             border-radius: 50%;
-            bottom: -120px; right: -100px;
+            bottom: -120px;
+            right: -100px;
         }
-        .brand-logo { font-size: 28px; font-weight: 700; margin-bottom: 60px; }
-        .brand-logo span { opacity: 0.75; }
-        .brand-tagline { font-size: 44px; font-weight: 700; line-height: 1.15; margin-bottom: 24px; }
-        .brand-sub { font-size: 16px; opacity: 0.75; line-height: 1.7; max-width: 400px; }
-        .trust-badges { display: flex; gap: 24px; margin-top: 48px; }
-        .badge { display: flex; align-items: center; gap: 10px; font-size: 13px; opacity: 0.8; }
-        .badge-icon { font-size: 22px; }
+
+        .brand-logo {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 60px;
+        }
+
+        .brand-logo span {
+            opacity: 0.75;
+        }
+
+        .brand-tagline {
+            font-size: 44px;
+            font-weight: 700;
+            line-height: 1.15;
+            margin-bottom: 24px;
+        }
+
+        .brand-sub {
+            font-size: 16px;
+            opacity: 0.75;
+            line-height: 1.7;
+            max-width: 400px;
+        }
+
+        .trust-badges {
+            display: flex;
+            gap: 24px;
+            margin-top: 48px;
+        }
+
+        .badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            opacity: 0.8;
+        }
+
+        .badge-icon {
+            font-size: 22px;
+        }
 
         .login-form-panel {
             width: 480px;
@@ -50,12 +117,40 @@
             align-items: center;
             padding: 60px 48px;
             background: #fff;
+            box-shadow: -20px 0 40px rgba(0, 0, 0, 0.05);
+            z-index: 10;
         }
-        .form-box { width: 100%; }
-        .form-title { font-size: 28px; font-weight: 700; margin-bottom: 8px; color: #111827; }
-        .form-subtitle { color: #6B7280; font-size: 14px; margin-bottom: 40px; }
-        .input-group { margin-bottom: 20px; }
-        .input-group label { display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 8px; }
+
+        .form-box {
+            width: 100%;
+            animation: slideUp 0.6s ease-out forwards;
+        }
+
+        .form-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #111827;
+        }
+
+        .form-subtitle {
+            color: #6B7280;
+            font-size: 14px;
+            margin-bottom: 40px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
         .input-group input {
             width: 100%;
             padding: 13px 16px;
@@ -67,7 +162,13 @@
             font-family: 'Inter', sans-serif;
             transition: border-color 0.2s, box-shadow 0.2s;
         }
-        .input-group input:focus { outline: none; border-color: #6366F1; box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #6366F1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+        }
+
         .btn-login {
             width: 100%;
             padding: 14px;
@@ -80,65 +181,335 @@
             font-weight: 600;
             cursor: pointer;
             font-family: 'Inter', sans-serif;
-            transition: background 0.2s, transform 0.1s;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(99, 102, 241, 0.2);
         }
-        .btn-login:hover { background: #4F52D9; }
-        .btn-login:active { transform: scale(0.98); }
-        .hint {
-            margin-top: 24px;
-            background: #F0F1FF;
-            border: 1px solid #C7D2FE;
+
+        .btn-login:hover {
+            background: #4F52D9;
+            box-shadow: 0 6px 12px rgba(99, 102, 241, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-login:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
+        }
+
+        .btn-signup {
+            width: 100%;
+            padding: 14px;
+            margin-top: 10px;
+            background: transparent;
+            border: 2px solid #6366F1;
             border-radius: 10px;
-            padding: 14px 16px;
-            font-size: 13px;
-            color: #4B5563;
-            line-height: 1.8;
+            color: #6366F1;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s ease;
         }
-        .hint b { color: #374151; }
-        .error-msg { color: #DC2626; font-size: 13px; margin-top: 10px; display: none; }
+
+        .btn-signup:hover {
+            background: #6366F1;
+            color: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+        }
+
+        .btn-signup:active {
+            transform: scale(0.98);
+        }
+
+        .btn-row {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            margin-top: 8px;
+        }
+
+        .forgot-link {
+            float: right;
+            font-size: 13px;
+            color: #6366F1;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .forgot-link:hover {
+            text-decoration: underline;
+        }
+
+        .error-msg {
+            color: #DC2626;
+            font-size: 13px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .success-msg {
+            color: #059669;
+            background: #D1FAE5;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-top: 10px;
+            display: none;
+            border: 1px solid #34D399;
+        }
+
+        .switch-mode {
+            margin-top: 24px;
+            font-size: 14px;
+            color: #6B7280;
+            text-align: center;
+        }
+
+        .switch-mode a {
+            color: #6366F1;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .switch-mode a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
+
 <body>
     <div class="brand-panel">
         <div class="brand-logo">Shop<span>Vault</span></div>
         <div class="brand-tagline">Shop with<br>confidence.</div>
-        <p class="brand-sub">Every transaction on ShopVault is protected by our real-time AI fraud prevention engine, analyzing risk in milliseconds before your money moves.</p>
+        <p class="brand-sub">Every transaction on ShopVault is protected by our real-time AI fraud prevention engine,
+            analyzing risk in milliseconds before your money moves.</p>
     </div>
 
     <div class="login-form-panel">
         <div class="form-box">
-            <div class="form-title">Welcome back</div>
-            <p class="form-subtitle">Sign in to your ShopVault account</p>
-            <div class="input-group">
-                <label>Account ID</label>
-                <input type="text" id="user_id" placeholder="e.g. U00001" value="U00001">
+            <div class="form-title" id="form-title">Welcome back</div>
+            <p class="form-subtitle" id="form-subtitle">Sign in to your ShopVault account</p>
+            <div class="input-group" id="name-group" style="display:none;">
+                <label>Full Name</label>
+                <input type="text" id="name" placeholder="First + Last Name">
             </div>
             <div class="input-group">
+                <label>Username</label>
+                <input type="email" id="email" placeholder="Email ID">
+            </div>
+            <div class="input-group" id="password-group">
+                <a href="#" class="forgot-link" tabindex="-1" onclick="switchMode('forgot')">Forgot password?</a>
                 <label>Password</label>
-                <input type="password" id="password" value="password123">
+                <input type="password" id="password" placeholder="Password">
             </div>
-            <button class="btn-login" id="login-btn" onclick="doLogin()">Sign in →</button>
+            <div class="btn-row">
+                <button class="btn-login" id="login-btn" onclick="doLogin()">Sign in →</button>
+                <button class="btn-signup" id="signup-toggle-btn" onclick="switchMode('signup')">Sign Up</button>
+
+                <button class="btn-login" id="signup-btn" style="display:none;" onclick="doSignup()">Create Account
+                    →</button>
+
+                <button class="btn-login" id="reset-btn" style="display:none;" onclick="doReset()">Send Reset Link
+                    →</button>
+                <button class="btn-signup" id="back-login-btn" style="display:none;" onclick="switchMode('login')">←
+                    Back to Sign In</button>
+            </div>
             <div class="error-msg" id="err-msg">Invalid credentials. Please try again.</div>
-            <div class="hint">
-                <b>Demo accounts:</b><br>
-                User ID: <b>U00001</b> through <b>U00020</b> &nbsp;·&nbsp; Password: <b>password123</b>
-            </div>
+            <div class="success-msg" id="success-msg">Reset link sent! Check your email.</div>
+
         </div>
     </div>
 
+    <!-- Firebase Auth SDK (compat mode for simplicity) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyA10Q1P7pgU3jBQL5Qn1y3zjUac02KVo4w",
+            authDomain: "ai-financial-fraud-detection.firebaseapp.com",
+            projectId: "ai-financial-fraud-detection",
+            storageBucket: "ai-financial-fraud-detection.firebasestorage.app",
+            messagingSenderId: "651400297625",
+            appId: "1:651400297625:web:1b7a45f9e9e0299ab40c08"
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        // If already logged in, go straight to shop
+        firebase.auth().onAuthStateChanged(user => {
+            if (user) {
+                user.getIdToken().then(token => {
+                    localStorage.setItem('fb_token', token);
+                    localStorage.setItem('user', JSON.stringify({
+                        uid: user.uid,
+                        email: user.email,
+                        name: user.displayName
+                    }));
+                    window.location.href = '/shop';
+                });
+            }
+        });
+
+        let mode = 'login';
+        function switchMode(newMode) {
+            mode = newMode;
+            document.getElementById('err-msg').style.display = 'none';
+            document.getElementById('success-msg').style.display = 'none';
+
+            if (mode === 'signup') {
+                document.getElementById('form-title').textContent = 'Create Account';
+                document.getElementById('form-subtitle').textContent = 'Join ShopVault securely';
+                document.getElementById('name-group').style.display = 'block';
+                document.getElementById('password-group').style.display = 'block';
+                document.getElementById('login-btn').style.display = 'none';
+                document.getElementById('signup-toggle-btn').style.display = 'none';
+                document.getElementById('reset-btn').style.display = 'none';
+                document.getElementById('signup-btn').style.display = 'block';
+                document.getElementById('back-login-btn').style.display = 'block';
+                document.getElementById('mode-text').innerHTML = 'Already have an account? <a href="#" onclick="switchMode(\'login\')">Sign in</a>';
+                document.getElementById('name').value = '';
+                document.getElementById('email').value = '';
+                document.getElementById('password').value = '';
+            } else if (mode === 'forgot') {
+                document.getElementById('form-title').textContent = 'Reset Password';
+                document.getElementById('form-subtitle').textContent = 'Enter your email to receive a reset link';
+                document.getElementById('name-group').style.display = 'none';
+                document.getElementById('password-group').style.display = 'none';
+                document.getElementById('login-btn').style.display = 'none';
+                document.getElementById('signup-toggle-btn').style.display = 'none';
+                document.getElementById('signup-btn').style.display = 'none';
+                document.getElementById('reset-btn').style.display = 'block';
+                document.getElementById('back-login-btn').style.display = 'block';
+                document.getElementById('mode-text').innerHTML = '';
+            } else {
+                document.getElementById('form-title').textContent = 'Welcome back';
+                document.getElementById('form-subtitle').textContent = 'Sign in to your ShopVault account';
+                document.getElementById('name-group').style.display = 'none';
+                document.getElementById('password-group').style.display = 'block';
+                document.getElementById('login-btn').style.display = 'block';
+                document.getElementById('signup-toggle-btn').style.display = 'block';
+                document.getElementById('signup-btn').style.display = 'none';
+                document.getElementById('reset-btn').style.display = 'none';
+                document.getElementById('back-login-btn').style.display = 'none';
+                document.getElementById('mode-text').innerHTML = 'Don\'t have an account? <a href="#" onclick="switchMode(\'signup\')">Sign up</a>';
+                // Clear defaults
+                document.getElementById('email').value = '';
+                document.getElementById('password').value = '';
+            }
+        }
+
         async function doLogin() {
             const btn = document.getElementById('login-btn');
             btn.textContent = 'Signing in…'; btn.disabled = true;
             document.getElementById('err-msg').style.display = 'none';
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+
             try {
-                const res = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: document.getElementById('user_id').value.trim(), password: document.getElementById('password').value }) });
-                const data = await res.json();
-                if (data.status === 'success') { localStorage.setItem('user', JSON.stringify(data.user)); window.location.href = '/shop'; }
-                else { document.getElementById('err-msg').style.display = 'block'; btn.textContent = 'Sign in →'; btn.disabled = false; }
-            } catch { document.getElementById('err-msg').textContent = 'Server error. Is the API running?'; document.getElementById('err-msg').style.display = 'block'; btn.textContent = 'Sign in →'; btn.disabled = false; }
+                const cred = await firebase.auth().signInWithEmailAndPassword(email, password);
+                const token = await cred.user.getIdToken();
+                localStorage.setItem('fb_token', token);
+                // Also cache basic user info
+                localStorage.setItem('user', JSON.stringify({
+                    uid: cred.user.uid,
+                    email: cred.user.email,
+                    name: cred.user.displayName || email.split('@')[0]
+                }));
+                window.location.href = '/shop';
+            } catch (err) {
+                document.getElementById('err-msg').textContent = err.message || 'Invalid credentials.';
+                document.getElementById('err-msg').style.display = 'block';
+                btn.textContent = 'Sign in →'; btn.disabled = false;
+            }
         }
-        document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+        async function doSignup() {
+            const btn = document.getElementById('signup-btn');
+            btn.textContent = 'Creating…'; btn.disabled = true;
+            document.getElementById('err-msg').style.display = 'none';
+
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (!name || !email || !password) {
+                document.getElementById('err-msg').textContent = 'Please fill all fields.';
+                document.getElementById('err-msg').style.display = 'block';
+                btn.textContent = 'Create Account →'; btn.disabled = false;
+                return;
+            }
+
+            try {
+                // We call the backend to create the user in Auth + Firestore so it gets pre-seeded data securely
+                const res = await fetch('/api/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+
+                // Guard against non-JSON responses (e.g. Flask HTML error pages)
+                const contentType = res.headers.get('content-type') || '';
+                if (!contentType.includes('application/json')) {
+                    throw new Error('Server error — please check the backend console.');
+                }
+                const data = await res.json();
+
+                if (data.status === 'success') {
+                    // Sign in now that it's created
+                    const cred = await firebase.auth().signInWithEmailAndPassword(email, password);
+                    const token = await cred.user.getIdToken();
+                    localStorage.setItem('fb_token', token);
+                    localStorage.setItem('user', JSON.stringify({
+                        uid: cred.user.uid,
+                        email: cred.user.email,
+                        name: name
+                    }));
+                    window.location.href = '/shop';
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (err) {
+                document.getElementById('err-msg').textContent = err.message || 'Error occurred.';
+                document.getElementById('err-msg').style.display = 'block';
+                btn.textContent = 'Create Account →'; btn.disabled = false;
+            }
+        }
+
+        async function doReset() {
+            const btn = document.getElementById('reset-btn');
+            btn.textContent = 'Sending…'; btn.disabled = true;
+            document.getElementById('err-msg').style.display = 'none';
+            document.getElementById('success-msg').style.display = 'none';
+
+            const email = document.getElementById('email').value.trim();
+            if (!email) {
+                document.getElementById('err-msg').textContent = 'Please enter your email.';
+                document.getElementById('err-msg').style.display = 'block';
+                btn.textContent = 'Send Reset Link →'; btn.disabled = false;
+                return;
+            }
+
+            try {
+                await firebase.auth().sendPasswordResetEmail(email);
+                document.getElementById('success-msg').textContent = `Reset link sent to ${email} (Check spam folder)`;
+                document.getElementById('success-msg').style.display = 'block';
+            } catch (err) {
+                document.getElementById('err-msg').textContent = err.message || 'Failed to send reset email.';
+                document.getElementById('err-msg').style.display = 'block';
+            } finally {
+                btn.textContent = 'Send Reset Link →'; btn.disabled = false;
+            }
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                if (mode === 'login') doLogin();
+                else if (mode === 'signup') doSignup();
+                else doReset();
+            }
+        });
     </script>
 </body>
+
 </html>

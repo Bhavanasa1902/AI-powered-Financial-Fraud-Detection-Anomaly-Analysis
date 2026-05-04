@@ -6,6 +6,9 @@
     <title>ShopVault — Bank Operations</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Firebase Auth SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Inter', sans-serif; background: #F5F6FA; color: #111827; display: flex; height: 100vh; overflow: hidden; }
@@ -30,6 +33,48 @@
         .aside-link:hover { background: #F3F4F6; color: #374151; }
         .aside-link.active { background: #EEF2FF; color: #4F46E5; font-weight: 600; }
         .aside-footer { margin-top: auto; padding-top: 16px; border-top: 1px solid #E5E7EB; }
+
+        /* ─── Auto-Retrain Panel ─── */
+        .retrain-card {
+            background: linear-gradient(135deg, #EEF2FF 0%, #F5F3FF 100%);
+            border: 1px solid #C7D2FE;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+        }
+        .retrain-card-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .retrain-card-title {
+            font-size: 12px; font-weight: 700; color: #4338CA;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .retrain-running-dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: #6366F1; animation: blink 1s infinite;
+            display: none;
+        }
+        .retrain-meta { font-size: 10px; color: #6B7280; line-height: 1.6; }
+        .retrain-meta b { color: #374151; }
+        .retrain-btn {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 8px 10px; border-radius: 8px;
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            background: linear-gradient(135deg, #6366F1, #818CF8);
+            color: #fff; border: none; width: 100%;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s; margin-top: 8px;
+        }
+        .retrain-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+        .retrain-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+        .retrain-result-pill {
+            display: inline-block; font-size: 10px; font-weight: 700;
+            padding: 2px 7px; border-radius: 8px;
+        }
+        .retrain-result-pill.success { background:#F0FDF4; color:#059669; border:1px solid #BBF7D0; }
+        .retrain-result-pill.error { background:#FEF2F2; color:#DC2626; border:1px solid #FECACA; }
+        .retrain-result-pill.running { background:#EEF2FF; color:#4F46E5; border:1px solid #C7D2FE; }
 
         /* ─── Main ─── */
         main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -84,7 +129,28 @@
         /* Chart area */
         .chart-area { height: 260px; position: relative; }
 
-        /* Scrollbar */
+        /* ─── Graph / Fraud Ring Panel ─── */
+        .graph-status-pill {
+            display: inline-flex; align-items: center; gap: 5px;
+            font-size: 10px; font-weight: 700; padding: 3px 8px;
+            border-radius: 8px; margin-top: 4px;
+        }
+        .graph-status-pill.ok { background:#F0FDF4; color:#059669; border:1px solid #BBF7D0; }
+        .graph-status-pill.off { background:#F9FAFB; color:#9CA3AF; border:1px solid #E5E7EB; }
+        .ring-section { margin-bottom: 16px; }
+        .ring-section-title { font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 8px; display:flex; align-items:center; gap:6px; }
+        .ring-badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 8px; }
+        .ring-badge.ip { background:#EEF2FF; color:#4F46E5; }
+        .ring-badge.card { background:#FEF2F2; color:#DC2626; }
+        .ring-badge.badip { background:#FFFBEB; color:#B45309; }
+        .ring-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 9px 12px; margin-bottom: 5px;
+            background: #F9FAFB; border: 1px solid #F3F4F6; border-radius: 10px;
+            font-size: 12px;
+        }
+        .ring-row:hover { background:#F3F4F6; border-color:#E5E7EB; }
+        .ring-empty { font-size: 12px; color: #9CA3AF; text-align: center; padding: 12px; }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 4px; }
@@ -94,12 +160,31 @@
     <aside>
         <div class="aside-logo">Shop<span>Vault</span></div>
         <div class="aside-section">Monitor</div>
-        <div class="aside-link active">📊 &nbsp;Overview</div>
-        <div class="aside-link">🚨 &nbsp;Fraud Alerts</div>
-        <div class="aside-link">👥 &nbsp;Customers</div>
-        <div class="aside-link">⚙️ &nbsp;AI Config</div>
+        <div class="aside-link active" id="nav-overview" onclick="showView('overview')">📊 &nbsp;Overview</div>
+        <div class="aside-link" id="nav-rings" onclick="showView('rings')">🕸️ &nbsp;Fraud Rings</div>
         <div class="aside-footer">
-            <div class="aside-link" onclick="window.location.href='/shop'">🛒 &nbsp;Shop View</div>
+            <div class="aside-section" style="margin-top:8px;">AI Auto-Retrain</div>
+
+            <div class="retrain-card">
+                <div class="retrain-card-header">
+                    <div class="retrain-card-title">
+                        <div class="retrain-running-dot" id="retrain-running-dot"></div>
+                        🤖 Model Scheduler
+                    </div>
+                    <span class="retrain-result-pill" id="retrain-result-pill" style="display:none;"></span>
+                </div>
+                <div class="retrain-meta" id="retrain-meta">
+                    <div>⏱ Interval: <b id="retrain-interval">—</b></div>
+                    <div>🕐 Next run: <b id="retrain-next">—</b></div>
+                    <div>✅ Last run: <b id="retrain-last">—</b></div>
+                    <div id="retrain-msg-row" style="margin-top:4px;display:none;font-size:10px;color:#6B7280;">💬 <span id="retrain-msg"></span></div>
+                </div>
+                <button class="retrain-btn" id="retrain-btn" onclick="triggerManualRetrain()">
+                    ⚡ Run Now
+                </button>
+            </div>
+
+            <div class="aside-link" onclick="doLogout()" style="margin-top:4px;">🚪 &nbsp;Logout</div>
         </div>
     </aside>
 
@@ -109,21 +194,24 @@
             <div class="live-pill"><div class="live-dot"></div> Live Feed Active</div>
         </div>
 
-        <div class="content">
+        <div class="content" id="main-content">
+
+            <!-- Overview View -->
+            <div id="view-overview">
 
             <!-- Stats -->
             <div class="stats-row">
-                <div class="stat-card">
+                <div class="stat-card filter-btn" id="btn-ALL" onclick="setDashboardFilter('ALL')" style="cursor:pointer; border: 2px solid #6366F1;">
                     <div class="sc-label">Total Transactions</div>
                     <div class="sc-val" id="stat-total">—</div>
                     <div class="sc-sub">All accounts</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card filter-btn" id="btn-BLOCK" onclick="setDashboardFilter('BLOCK')" style="cursor:pointer;">
                     <div class="sc-label">Blocked</div>
                     <div class="sc-val" id="stat-blocked" style="color:#DC2626;">0</div>
                     <div class="sc-sub">High risk</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card filter-btn" id="btn-FLAG_FOR_REVIEW" onclick="setDashboardFilter('FLAG_FOR_REVIEW')" style="cursor:pointer;">
                     <div class="sc-label">Flagged</div>
                     <div class="sc-val" id="stat-flagged" style="color:#D97706;">0</div>
                     <div class="sc-sub">Under review</div>
@@ -139,8 +227,14 @@
             <div class="row-layout" style="grid-template-columns: 1fr 1.6fr;">
 
                 <div class="panel">
-                    <div class="panel-title">Live Transaction Stream</div>
-                    <div class="panel-sub">Most recent first</div>
+                    <div class="panel-title" style="display:flex; justify-content:space-between; align-items:center;">
+                        <span>Transaction Stream</span>
+                        <div>
+                            <button onclick="prevPage()" style="cursor:pointer; background:#fff; border:1px solid #E5E7EB; padding:4px 10px; border-radius:4px; font-size:12px;">Prev</button>
+                            <button onclick="nextPage()" style="cursor:pointer; background:#fff; border:1px solid #E5E7EB; padding:4px 10px; border-radius:4px; font-size:12px; margin-left:6px;">Next</button>
+                        </div>
+                    </div>
+                    <div class="panel-sub">Page <span id="page-num">1</span></div>
                     <div class="feed-scroll" id="feed-list"></div>
                 </div>
 
@@ -173,11 +267,66 @@
                 </table>
             </div>
 
-        </div>
-    </main>
+            </div> <!-- end view-overview -->
+
+            <!-- Fraud Rings View -->
+            <div id="view-rings" style="display:none;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+                    <div>
+                        <div style="font-size:18px;font-weight:700;color:#111827;">🕸️ Fraud Ring Intelligence</div>
+                        <div style="font-size:13px;color:#6B7280;margin-top:2px;">Neo4j graph analysis — shared IPs, stolen cards, and bad actor networks</div>
+                    </div>
+                    <div id="graph-status-badge" class="graph-status-pill off">● Connecting…</div>
+                </div>
+
+                <!-- Shared IP Rings -->
+                <div class="panel">
+                    <div class="panel-title">🌐 Shared IP Fraud Rings</div>
+                    <div class="panel-sub">Multiple distinct users transacting from the same IP — indicative of a coordinated fraud ring</div>
+                    <div class="ring-section" id="ring-shared-ip"><div class="ring-empty">Loading…</div></div>
+                </div>
+
+                <!-- Stolen Card Syndicates -->
+                <div class="panel">
+                    <div class="panel-title">💳 Stolen Card Syndicates</div>
+                    <div class="panel-sub">Multiple accounts sharing the same card fingerprint — indicative of a stolen card being used syndicately</div>
+                    <div class="ring-section" id="ring-shared-card"><div class="ring-empty">Loading…</div></div>
+                </div>
+
+                <!-- High-Risk IPs -->
+                <div class="panel">
+                    <div class="panel-title">🚨 High-Risk IP Addresses</div>
+                    <div class="panel-sub">IP addresses linked to 2+ BLOCK decisions — likely bad actor infrastructure</div>
+                    <div class="ring-section" id="ring-bad-ip"><div class="ring-empty">Loading…</div></div>
+                </div>
+            </div> <!-- end view-rings -->
+
+        </div> <!-- end main-content -->
 
     <script>
         let riskChart = null;
+        let globalFeedData = [];
+        let currentDashboardFilter = 'ALL';
+
+        function setDashboardFilter(decision) {
+            currentDashboardFilter = decision;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.style.border = '1px solid #E5E7EB');
+            
+            if(decision === 'ALL') document.getElementById('btn-ALL').style.border = '2px solid #6366F1';
+            else if(decision === 'BLOCK') document.getElementById('btn-BLOCK').style.border = '2px solid #DC2626';
+            else if(decision === 'FLAG_FOR_REVIEW') document.getElementById('btn-FLAG_FOR_REVIEW').style.border = '2px solid #D97706';
+
+            applyFilter();
+        }
+
+        function applyFilter() {
+            // We now request the filtered data directly from the server which limits read volumes
+            // and skips JS filtering entirely. Because filtering triggers a refresh, we skip local logic.
+            // Reset to page 1 for the filtered items
+            currentPage = 1;
+            document.getElementById('page-num').textContent = currentPage;
+            refresh();
+        }
 
         // ─── Helpers ───
         function decisionStyle(d) {
@@ -200,7 +349,6 @@
             const scores  = trends.map(t => Number(t.risk_score));
             const amounts = trends.map(t => Number(t.amount));
 
-            // Destroy previous instance
             if (riskChart) { riskChart.destroy(); riskChart = null; }
 
             const canvas = document.getElementById('riskChart');
@@ -208,7 +356,7 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             riskChart = new Chart(ctx, {
-                type: 'bar', // Set base type for mixed chart in v4
+                type: 'bar',
                 data: {
                     labels,
                     datasets: [
@@ -270,7 +418,9 @@
         // ─── Load user trend ───
         async function loadUserTrend(uid, displayName) {
             try {
-                const res = await fetch('/api/admin/user/' + uid + '/trends');
+                const token = await getToken();
+                const headers = { 'Authorization': 'Bearer ' + token };
+                const res = await fetch('/api/bank/user/' + uid + '/trends', { headers });
                 const data = await res.json();
                 const trends = data.trends || [];
                 if (trends.length === 0) {
@@ -288,7 +438,7 @@
         function renderCustomerTable(feed) {
             const map = {};
             feed.forEach(tx => {
-                if (!map[tx.user_id]) map[tx.user_id] = { txs:[], blocked:0, total:0 };
+                if (!map[tx.user_id]) map[tx.user_id] = { name: tx.user_name || tx.user_id, txs:[], blocked:0, total:0 };
                 map[tx.user_id].txs.push(tx);
                 map[tx.user_id].total += Number(tx.amount);
                 if (tx.decision === 'BLOCK') map[tx.user_id].blocked++;
@@ -296,14 +446,26 @@
 
             const tbody = document.getElementById('customer-table');
             tbody.innerHTML = '';
-            for (let i = 1; i <= 20; i++) {
-                const uid = 'U' + String(i).padStart(5, '0');
-                const d = map[uid] || { txs:[], blocked:0, total:0 };
+            
+            // Sort by most recent activity (which is at the end of the arrays since feed is oldest-first inside the 30-window)
+            const sortedUIDs = Object.keys(map).sort((a,b) => {
+                // In our feed, newest transaction is at the end of the `feed` list.
+                // So the larger the index in original `feed` or timestamp, the newer.
+                // We'll just sort by the total amount roughly, or simply reverse insertion order.
+                return map[b].txs.length - map[a].txs.length; 
+            });
+
+            // Let's actually sort by newest transaction first directly:
+            // Since `feed` is oldest-first, map[uid].txs[last] is their newest transaction.
+            const userArray = Object.values(map).reverse(); // simple reversal puts newest interacters near top usually
+            
+            userArray.forEach(d => {
+                const uid = d.txs[0].user_id;
                 const avgRisk = d.txs.length ? Math.round(d.txs.reduce((s,t) => s+t.risk_score, 0) / d.txs.length) : 0;
                 const rs = riskStyle(avgRisk);
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td><b>Customer ${i}</b> <span style="color:#9CA3AF;font-size:11px;">${uid}</span></td>
+                    <td><b>${d.name}</b> <span style="color:#9CA3AF;font-size:11px;display:block;">${uid.length>10?uid.slice(0,8)+'...':uid}</span></td>
                     <td>${d.txs.length}</td>
                     <td>$${d.total.toFixed(2)}</td>
                     <td style="color:${d.blocked>0?'#DC2626':'#9CA3AF'};font-weight:${d.blocked>0?700:400}">${d.blocked}</td>
@@ -312,12 +474,11 @@
                 tr.onclick = () => {
                     document.querySelectorAll('.cust-table tr.selected').forEach(r => r.classList.remove('selected'));
                     tr.classList.add('selected');
-                    loadUserTrend(uid, `Customer ${i}`);
-                    // Scroll chart into view
+                    loadUserTrend(uid, d.name);
                     document.getElementById('trend-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 };
                 tbody.appendChild(tr);
-            }
+            });
         }
 
         // ─── Render feed ───
@@ -329,29 +490,206 @@
                 item.className = 'feed-item';
                 item.innerHTML = `
                     <div>
-                        <div class="fi-uid">${tx.user_id} <span style="color:#9CA3AF;font-weight:400;font-size:11px;">#${String(tx.transaction_id).slice(-6)}</span></div>
-                        <div class="fi-meta">${tx.timestamp} · ${(tx.category||'').replace(/_/g,' ')}</div>
+                        <div class="fi-uid">${tx.user_name || tx.user_id} <span style="color:#6366F1;font-weight:600;font-size:11px;margin-left:6px;background:#EEF2FF;padding:2px 6px;border-radius:6px;">${(tx.category||'').replace(/_/g,' ')}</span></div>
+                        <div class="fi-meta">${tx.timestamp} · ID: ${String(tx.transaction_id).slice(-8)}</div>
                     </div>
-                    <div style="display:flex;align-items:center;gap:10px;">
-                        <div class="fi-amount">$${parseFloat(tx.amount).toFixed(2)}</div>
-                        <div class="decision-pill" style="${decisionStyle(tx.decision)}">${tx.decision.replace(/_/g,' ')}</div>
+                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;">
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <div class="fi-amount">$${parseFloat(tx.amount).toFixed(2)}</div>
+                            <div class="decision-pill" style="${decisionStyle(tx.decision)}">${tx.decision.replace(/_/g,' ')}</div>
+                        </div>
+                        ${(tx.primary_reasons && tx.primary_reasons.length > 0) ? `<div style="font-size:11px;color:#6B7280;text-align:right;white-space:pre-wrap;font-family:monospace;background:#F9FAFB;padding:4px 8px;border-radius:4px;border:1px solid #E5E7EB;">${tx.primary_reasons.join('<br>')}</div>` : ''}
                     </div>`;
                 list.appendChild(item);
             });
         }
 
-        // ─── Main refresh ───
-        async function refresh() {
-            try {
-                const [statsRes, feedRes] = await Promise.all([ fetch('/api/admin/stats'), fetch('/api/feed') ]);
-                const stats = await statsRes.json();
-                const feedData = await feedRes.json();
-                const feed = feedData.feed || [];
+        // ─── Firebase Init ───
+        const firebaseConfig = {
+            apiKey: "AIzaSyA10Q1P7pgU3jBQL5Qn1y3zjUac02KVo4w",
+            authDomain: "ai-financial-fraud-detection.firebaseapp.com",
+            projectId: "ai-financial-fraud-detection",
+            storageBucket: "ai-financial-fraud-detection.firebasestorage.app",
+            messagingSenderId: "651400297625",
+            appId: "1:651400297625:web:1b7a45f9e9e0299ab40c08"
+        };
+        firebase.initializeApp(firebaseConfig);
 
+        async function getToken() {
+            const u = firebase.auth().currentUser;
+            if (u) return await u.getIdToken();
+            return localStorage.getItem('fb_token') || '';
+        }
+        firebase.auth().onAuthStateChanged(u => {
+            if (!u) { window.location.href = '/'; return; }
+            u.getIdToken().then(t => localStorage.setItem('fb_token', t));
+        });
+
+        // ─── Auto-Retrain Status Panel ───
+
+        function _fmtTime(iso) {
+            if (!iso) return '—';
+            const d = new Date(iso);
+            return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        function _timeUntil(iso) {
+            if (!iso) return '';
+            const diff = Math.max(0, new Date(iso) - Date.now());
+            const h = Math.floor(diff / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            return h > 0 ? `${h}h ${m}m` : `${m}m`;
+        }
+
+        async function fetchRetrainStatus() {
+            try {
+                const token = await getToken();
+                const res = await fetch('/api/bank/retrain/status', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await res.json();
+                if (data.status !== 'success') return;
+                const r = data.retrain;
+
+                const btn = document.getElementById('retrain-btn');
+                const dot = document.getElementById('retrain-running-dot');
+                const pill = document.getElementById('retrain-result-pill');
+                const msgRow = document.getElementById('retrain-msg-row');
+                const msgEl = document.getElementById('retrain-msg');
+
+                // Interval
+                document.getElementById('retrain-interval').textContent =
+                    r.interval_hours ? `Every ${r.interval_hours}h` : '—';
+
+                // Next run
+                const nextText = r.next_run
+                    ? `${_fmtTime(r.next_run)} (in ${_timeUntil(r.next_run)})`
+                    : '—';
+                document.getElementById('retrain-next').textContent = nextText;
+
+                // Last run
+                document.getElementById('retrain-last').textContent = _fmtTime(r.last_run);
+
+                // Running state
+                if (r.running) {
+                    dot.style.display = 'block';
+                    btn.disabled = true;
+                    btn.textContent = '⏳ Running…';
+                    pill.className = 'retrain-result-pill running';
+                    pill.textContent = 'ACTIVE';
+                    pill.style.display = '';
+                } else {
+                    dot.style.display = 'none';
+                    btn.disabled = false;
+                    btn.textContent = '⚡ Run Now';
+
+                    if (r.last_result === 'success') {
+                        pill.className = 'retrain-result-pill success';
+                        pill.textContent = `✓ ${r.new_rows} rows`;
+                        pill.style.display = '';
+                    } else if (r.last_result === 'error') {
+                        pill.className = 'retrain-result-pill error';
+                        pill.textContent = 'ERROR';
+                        pill.style.display = '';
+                    } else {
+                        pill.style.display = 'none';
+                    }
+                }
+
+                // Message
+                if (r.last_message && r.last_message !== 'Running…') {
+                    msgEl.textContent = r.last_message;
+                    msgRow.style.display = '';
+                } else {
+                    msgRow.style.display = 'none';
+                }
+            } catch(e) {
+                console.warn('Retrain status fetch error:', e);
+            }
+        }
+
+        async function triggerManualRetrain() {
+            const btn = document.getElementById('retrain-btn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Starting…';
+            try {
+                const token = await getToken();
+                const res = await fetch('/api/bank/retrain', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await res.json();
+                if (data.status !== 'success') {
+                    btn.disabled = false;
+                    btn.textContent = '⚡ Run Now';
+                    alert('Retrain error: ' + data.message);
+                } else {
+                    // Let status polling take over
+                    await fetchRetrainStatus();
+                }
+            } catch(e) {
+                btn.disabled = false;
+                btn.textContent = '⚡ Run Now';
+                alert('Failed to reach server.');
+            }
+        }
+
+        // ─── Logout ───
+        async function doLogout() {
+            firebase.auth().signOut();
+            localStorage.removeItem('fb_token');
+            window.location.href = '/';
+        }
+
+        let currentPage = 1;
+        const pageSize = 30;
+        let isLive = true;
+
+        function nextPage() {
+            isLive = false;
+            currentPage++;
+            document.querySelector('.live-dot').style.background = '#9CA3AF';
+            document.querySelector('.live-pill').innerHTML = 'Paused (History)';
+            document.getElementById('page-num').textContent = currentPage;
+            refresh();
+        }
+
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                if (currentPage === 1) {
+                    isLive = true;
+                    document.querySelector('.live-pill').innerHTML = '<div class="live-dot"></div> Live Feed Active';
+                }
+                document.getElementById('page-num').textContent = currentPage;
+                refresh();
+            }
+        }
+
+        async function fetchStats() {
+            try {
+                const token = await getToken();
+                const headers = { 'Authorization': 'Bearer ' + token };
+                const statsRes = await fetch(`/api/bank/stats?_=${Date.now()}`, { headers });
+                const stats = await statsRes.json();
                 document.getElementById('stat-total').textContent = stats.total;
                 document.getElementById('stat-blocked').textContent = stats.blocked;
                 document.getElementById('stat-flagged').textContent = stats.flagged;
+            } catch(e) {}
+        }
 
+        // ─── Main refresh ───
+        async function refresh() {
+            try {
+                const token = await getToken();
+                const headers = { 'Authorization': 'Bearer ' + token };
+                
+                const offset = (currentPage - 1) * pageSize;
+                const feedRes = await fetch(`/api/bank/feed?limit=${pageSize}&offset=${offset}&decision=${currentDashboardFilter}&_=${Date.now()}`, { headers });
+                const feedData = await feedRes.json();
+                const feed = feedData.feed || [];
+                globalFeedData = feed;
+                
                 renderFeed(feed);
                 renderCustomerTable(feed);
             } catch(e) {
@@ -359,8 +697,146 @@
             }
         }
 
-        setInterval(refresh, 2500);
-        refresh();
+        // ─── View Navigation ───
+        function showView(name) {
+            document.getElementById('view-overview').style.display = name === 'overview' ? '' : 'none';
+            document.getElementById('view-rings').style.display    = name === 'rings'    ? '' : 'none';
+            document.getElementById('nav-overview').className = 'aside-link' + (name === 'overview' ? ' active' : '');
+            document.getElementById('nav-rings').className    = 'aside-link' + (name === 'rings'    ? ' active' : '');
+            if (name === 'rings') fetchFraudRings();
+        }
+
+        // ─── Neo4j / RAM Graph Status ───
+        async function fetchGraphStatus() {
+            try {
+                const token = await getToken();
+                const res = await fetch('/api/bank/graph-status', { headers: { 'Authorization': 'Bearer ' + token } });
+                const data = await res.json();
+                const badge = document.getElementById('graph-status-badge');
+                if (!badge) return;
+                const g = data.graph || {};
+                if (g.connected) {
+                    badge.className = 'graph-status-pill ok';
+                    badge.textContent = `● Neo4j Connected · ${g.nodes} nodes · ${g.relationships} edges`;
+                } else if (g.source === 'firestore_ram') {
+                    badge.className = 'graph-status-pill ok';
+                    badge.textContent = `● Live Data Mode · ${g.nodes} txns · ${g.relationships} blocks analysed`;
+                } else {
+                    badge.className = 'graph-status-pill off';
+                    badge.textContent = '○ Connecting…';
+                }
+            } catch(e) {
+                console.warn('Graph status error:', e);
+            }
+        }
+
+        // ─── Fraud Ring Fetch + Render ───
+        async function fetchFraudRings() {
+            try {
+                const token = await getToken();
+                const res = await fetch('/api/bank/fraud-rings', { headers: { 'Authorization': 'Bearer ' + token } });
+                const data = await res.json();
+                if (data.status !== 'success') return;
+
+                const isRam = data.source === 'firestore_ram';
+
+                // Update panel subtitles to reflect data source
+                if (isRam) {
+                    document.querySelector('#view-rings > div > div:last-child').style.color = '#6366F1';
+                    document.querySelector('#view-rings > div div:nth-child(2)').textContent =
+                        'Live transaction analysis — location clustering, risk profiling, block pattern detection';
+                }
+
+                renderSharedIpRings(data.shared_ip_rings || [], isRam);
+                renderSharedCardRings(data.shared_card_rings || [], isRam);
+                renderBadIpRings(data.high_risk_ips || [], isRam);
+                fetchGraphStatus();
+            } catch(e) {
+                console.warn('Fraud ring fetch error:', e);
+            }
+        }
+
+        function renderSharedIpRings(rows, isRam) {
+            const el = document.getElementById('ring-shared-ip');
+            if (!rows.length) {
+                el.innerHTML = isRam
+                    ? '<div class="ring-empty">No location clusters with multiple users yet. Make more purchases from different accounts to see rings appear.</div>'
+                    : '<div class="ring-empty">✅ No shared-IP fraud rings detected.</div>';
+                return;
+            }
+            const label = isRam ? 'Location cluster' : 'IP';
+            el.innerHTML = rows.map(r => `
+                <div class="ring-row">
+                    <div>
+                        <div style="font-weight:700;color:#111827;">${label}: <span style="font-family:monospace;color:#4F46E5;">${r.ip_addr}</span></div>
+                        <div style="color:#6B7280;margin-top:2px;">User IDs: ${(r.uids||[]).map(u=>u.slice(0,12)).join(', ').slice(0,90)}</div>
+                        ${r.tx_count ? `<div style="color:#9CA3AF;font-size:11px;margin-top:1px;">${r.tx_count} transactions total</div>` : ''}
+                    </div>
+                    <div style="text-align:right;">
+                        <span class="ring-badge ip">${r.uids ? r.uids.length : '?'} users</span>
+                        <div style="font-size:11px;color:#DC2626;margin-top:3px;">${r.blocked||0} blocked</div>
+                    </div>
+                </div>`).join('');
+        }
+
+        function renderSharedCardRings(rows, isRam) {
+            const el = document.getElementById('ring-shared-card');
+            if (!rows.length) {
+                el.innerHTML = isRam
+                    ? '<div class="ring-empty">No high-risk users detected yet. Users with 2+ blocked transactions will appear here.</div>'
+                    : '<div class="ring-empty">✅ No stolen card syndicates detected.</div>';
+                return;
+            }
+            const label = isRam ? 'High-risk user' : 'Card hash';
+            el.innerHTML = rows.map(r => `
+                <div class="ring-row">
+                    <div>
+                        <div style="font-weight:700;color:#111827;">${label}: <span style="font-family:monospace;color:#DC2626;">${r.card_hash}</span></div>
+                        <div style="color:#6B7280;margin-top:2px;">Names: ${(r.names||[]).join(', ').slice(0,80)}</div>
+                        ${r.categories ? `<div style="color:#9CA3AF;font-size:11px;margin-top:1px;">Categories: ${(r.categories||[]).join(', ')}</div>` : ''}
+                    </div>
+                    <div style="text-align:right;">
+                        <span class="ring-badge card">${r.block_count||r.user_count||'?'} blocks</span>
+                    </div>
+                </div>`).join('');
+        }
+
+        function renderBadIpRings(rows, isRam) {
+            const el = document.getElementById('ring-bad-ip');
+            if (!rows.length) {
+                el.innerHTML = isRam
+                    ? '<div class="ring-empty">No high-risk zones detected yet. Locations with 2+ blocked transactions will appear here.</div>'
+                    : '<div class="ring-empty">✅ No high-risk IPs detected.</div>';
+                return;
+            }
+            const label = isRam ? 'Zone' : 'IP';
+            el.innerHTML = rows.map(r => `
+                <div class="ring-row">
+                    <div>
+                        <div style="font-weight:700;color:#111827;">${label}: <span style="font-family:monospace;color:#B45309;">${r.ip_addr}</span></div>
+                        <div style="color:#6B7280;margin-top:2px;">Sample TXNs: ${(r.sample_txs||[]).map(t=>String(t).slice(-10)).join(', ').slice(0,70)}</div>
+                    </div>
+                    <span class="ring-badge badip">${r.block_count} blocks</span>
+                </div>`).join('');
+        }
+
+        async function initPolling() {
+            await fetchStats();
+            await refresh();
+            await fetchRetrainStatus();
+
+            setInterval(() => {
+                fetchStats();
+                if (isLive && currentPage === 1) {
+                    refresh();
+                }
+            }, 30000);
+
+            // Poll retrain status every 15s (lightweight single-document read from RAM)
+            setInterval(fetchRetrainStatus, 15000);
+        }
+
+        initPolling();
     </script>
 </body>
 </html>
